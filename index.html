@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertidor a Mayúsculas - Multi Language</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Selector de idiomas -->
+    <div class="language-selector">
+        <button class="lang-btn" onclick="cambiarIdioma('es')" data-lang="es">
+            🇪🇸 <span class="lang-text">Español</span>
+        </button>
+        <button class="lang-btn" onclick="cambiarIdioma('en')" data-lang="en">
+            🇬🇧 <span class="lang-text">English</span>
+        </button>
+        <button class="lang-btn" onclick="cambiarIdioma('zh')" data-lang="zh">
+            🇨🇳 <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" onclick="cambiarIdioma('ja')" data-lang="ja">
+            🇯🇵 <span class="lang-text">日本語</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <h1 id="title">🔄 Convertidor a Mayúsculas</h1>
+        <div class="subtitle" id="subtitle">Escribe tu texto y presiónalo para convertirlo a MAYÚSCULAS</div>
+        
+        <form id="converterForm" method="POST">
+            <div class="input-group">
+                <label for="texto" id="label-original">📝 Texto original:</label>
+                <textarea 
+                    id="texto" 
+                    name="texto" 
+                    rows="4" 
+                    placeholder="Escribe tu texto aquí...">{{ texto_original }}</textarea>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn-convert" id="btn-convert">
+                    🔠 Convertir a MAYÚSCULAS
+                </button>
+                <button type="button" class="btn-clear" id="btn-clear" onclick="limpiarTexto()">
+                    🗑️ Limpiar
+                </button>
+            </div>
+        </form>
+        
+        <div class="result-group">
+            <div class="result-header">
+                <h3 id="result-title">✨ Resultado en MAYÚSCULAS:</h3>
+                <button class="btn-copy" id="btn-copy" onclick="copiarTexto()">
+                    📋 Copiar
+                </button>
+            </div>
+            <div class="result-text" id="resultado">
+                {{ texto_convertido if texto_convertido else "El resultado aparecerá aquí..." }}
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast">✅ ¡Texto copiado!</div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
