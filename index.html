@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convertidor a Mayúsculas - Multi Language</title>
+    <title>Convertidor a Mayúsculas y Katakana - Multi Language</title>
     <style>
         * {
             margin: 0;
@@ -11,21 +11,20 @@
             box-sizing: border-box;
         }
 
-       body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Fondo con imagen desde URL */
-    background-image: url('https://ak-d.tripcdn.com/images/1mc2c12000d55m26b6134_R_600_400_R5.webp   ');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    position: relative;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+             background-image: url('https://ak-d.tripcdn.com/images/1mc2c12000d55m26b6134_R_600_400_R5.webp   ');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
 
         body::before {
             content: '';
@@ -48,6 +47,7 @@
             animation: fadeIn 0.5s ease-in;
             position: relative;
             z-index: 1;
+            margin-bottom: 80px;
         }
 
         @keyframes fadeIn {
@@ -73,7 +73,7 @@
             border-radius: 50px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
-            
+          
         }
 
         .lang-btn {
@@ -126,6 +126,7 @@
             .container {
                 padding: 20px;
                 margin-top: 50px;
+                margin-bottom: 100px;
             }
             
             h1 {
@@ -215,6 +216,16 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
+        .btn-katakana {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-katakana:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+        }
+
         .btn-clear {
             background: #f0f0f0;
             color: #666;
@@ -237,6 +248,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .result-header h3 {
@@ -270,6 +283,32 @@
             white-space: pre-wrap;
         }
 
+        .conversion-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+
+        .conversion-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-upper {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-katakana {
+            background: #f5576c;
+            color: white;
+        }
+
         .toast {
             visibility: hidden;
             min-width: 250px;
@@ -293,30 +332,40 @@
             opacity: 1;
         }
 
-
         .footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    text-align: center;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    font-size: 14px;
-  
-    z-index: 1000;
-}
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            
+            color: white;
+            padding: 12px 20px;
+            z-index: 1000;
+        }
 
-.footer p {
-    margin: 0;
-}
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
 
+        .footer p {
+            margin: 0;
+            font-size: 14px;
+        }
 
+        .nombre {
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
     </style>
 </head>
 <body>
-    <!-- Resto del HTML igual... -->
+    <!-- Selector de idiomas -->
     <div class="language-selector">
         <button class="lang-btn" onclick="cambiarIdioma('es')" data-lang="es">
             🇪🇸 <span class="lang-text">Español</span>
@@ -333,10 +382,10 @@
     </div>
 
     <div class="container">
-        <h1 id="title">🔄 Convertidor a Mayúsculas</h1>
-        <div class="subtitle" id="subtitle">Escribe tu texto y presiónalo para convertirlo a MAYÚSCULAS</div>
+        <h1 id="title">🔄 Convertidor a Mayúsculas y Katakana</h1>
+        <div class="subtitle" id="subtitle">Escribe tu texto y elige la conversión</div>
         
-        <form id="converterForm" method="POST">
+        <form id="converterForm">
             <div class="input-group">
                 <label for="texto" id="label-original">📝 Texto original:</label>
                 <textarea 
@@ -347,8 +396,11 @@
             </div>
             
             <div class="button-group">
-                <button type="submit" class="btn-convert" id="btn-convert">
+                <button type="button" class="btn-convert" id="btn-convert" onclick="convertToUpper()">
                     🔠 Convertir a MAYÚSCULAS
+                </button>
+                <button type="button" class="btn-katakana" id="btn-katakana" onclick="convertToKatakana()">
+                    🈳 Convertir a Katakana
                 </button>
                 <button type="button" class="btn-clear" id="btn-clear" onclick="limpiarTexto()">
                     🗑️ Limpiar
@@ -358,10 +410,13 @@
         
         <div class="result-group">
             <div class="result-header">
-                <h3 id="result-title">✨ Resultado en MAYÚSCULAS:</h3>
+                <h3 id="result-title">✨ Resultado:</h3>
                 <button class="btn-copy" id="btn-copy" onclick="copiarTexto()">
                     📋 Copiar
                 </button>
+            </div>
+            <div class="conversion-type" id="conversion-type" style="display: none;">
+                <span class="conversion-badge" id="badge-type">Tipo de conversión</span>
             </div>
             <div class="result-text" id="resultado">
                 El resultado aparecerá aquí...
@@ -369,13 +424,317 @@
         </div>
     </div>
     
-    <div id="toast" class="toast">✅ ¡Texto copiado!</div>
-      <!-- Footer -->
-    
-    <script src="js/script.js"></script>
-
     <footer class="footer">
-    <p>© 2026 - Sebastian moreira </p>
-      </footer>
+        <div class="footer-content">
+            <p>Creado  por <span class="nombre">Sebastian moreira </span></p>
+        </div>
+    </footer>
+    
+    <div id="toast" class="toast">✅ ¡Texto copiado!</div>
+    
+    <script>
+        // FUNCIONES DE CONVERSIÓN
+        function TO_UPPERCASE_ENGLISH(text) {
+            return (typeof text === 'string') ? text.toUpperCase() : text;
+        }
+
+        function ROMAJI_TO_KATAKANA(text) {
+            if (!text) return "";
+
+            let r = text.toLowerCase();
+
+            const map = {
+                // combinaciones comunes
+                kya:'キャ', kyu:'キュ', kyo:'キョ',
+                sha:'シャ', shu:'シュ', sho:'ショ',
+                cha:'チャ', chu:'チュ', cho:'チョ',
+                nya:'ニャ', nyu:'ニュ', nyo:'ニョ',
+                hya:'ヒャ', hyu:'ヒュ', hyo:'ヒョ',
+                mya:'ミャ', myu:'ミュ', myo:'ミョ',
+                rya:'リャ', ryu:'リュ', ryo:'リョ',
+
+                // sonidos básicos
+                a:'ア', i:'イ', u:'ウ', e:'エ', o:'オ',
+                ka:'カ', ki:'キ', ku:'ク', ke:'ケ', ko:'コ',
+                sa:'サ', shi:'シ', su:'ス', se:'セ', so:'ソ',
+                ta:'タ', chi:'チ', tsu:'ツ', te:'テ', to:'ト',
+                na:'ナ', ni:'ニ', nu:'ヌ', ne:'ネ', no:'ノ',
+                ha:'ハ', hi:'ヒ', fu:'フ', he:'ヘ', ho:'ホ',
+                ma:'マ', mi:'ミ', mu:'ム', me:'メ', mo:'モ',
+                ya:'ヤ', yu:'ユ', yo:'ヨ',
+                ra:'ラ', ri:'リ', ru:'ル', re:'レ', ro:'ロ',
+                wa:'ワ', wo:'ヲ',
+                n:'ン'
+            };
+
+            const keys = Object.keys(map).sort((a,b)=>b.length-a.length);
+
+            let result = "";
+            let i = 0;
+
+            while (i < r.length) {
+                let found = false;
+
+                // consonante doble → ッ
+                if (r[i] === r[i+1] && /[bcdfghjklmpqrstvwxyz]/.test(r[i]) && r[i] !== 'n') {
+                    result += 'ッ';
+                    i++;
+                    continue;
+                }
+
+                for (let k of keys) {
+                    if (r.slice(i, i+k.length) === k) {
+                        result += map[k];
+                        i += k.length;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    result += r[i];
+                    i++;
+                }
+            }
+
+            return result;
+        }
+
+        // Variables globales
+        let conversionActual = '';
+        let idiomaActual = 'es';
+
+        // Diccionario de traducciones
+        const traducciones = {
+            es: {
+                title: "🔄 Convertidor a Mayúsculas y Katakana",
+                subtitle: "Escribe tu texto y elige la conversión",
+                label_original: "📝 Texto original:",
+                placeholder: "Escribe tu texto aquí...",
+                btn_convert: "🔠 Convertir a MAYÚSCULAS",
+                btn_katakana: "🈳 Convertir a Katakana",
+                btn_clear: "🗑️ Limpiar",
+                result_title: "✨ Resultado:",
+                btn_copy: "📋 Copiar",
+                empty_result: "El resultado aparecerá aquí...",
+                copied: "✅ ¡Texto copiado!",
+                no_text: "⚠️ No hay texto para copiar",
+                conversion_upper: "🔠 Conversión a MAYÚSCULAS",
+                conversion_kata: "🈳 Conversión a Katakana (Romaji → カタカナ)"
+            },
+            en: {
+                title: "🔄 Uppercase and Katakana Converter",
+                subtitle: "Write your text and choose the conversion",
+                label_original: "📝 Original text:",
+                placeholder: "Write your text here...",
+                btn_convert: "🔠 Convert to UPPERCASE",
+                btn_katakana: "🈳 Convert to Katakana",
+                btn_clear: "🗑️ Clear",
+                result_title: "✨ Result:",
+                btn_copy: "📋 Copy",
+                empty_result: "The result will appear here...",
+                copied: "✅ Text copied!",
+                no_text: "⚠️ No text to copy",
+                conversion_upper: "🔠 UPPERCASE Conversion",
+                conversion_kata: "🈳 Katakana Conversion (Romaji → カタカナ)"
+            },
+            zh: {
+                title: "🔄 大写和片假名转换器",
+                subtitle: "输入文本并选择转换类型",
+                label_original: "📝 原始文本：",
+                placeholder: "在这里输入您的文本...",
+                btn_convert: "🔠 转换为大写",
+                btn_katakana: "🈳 转换为片假名",
+                btn_clear: "🗑️ 清除",
+                result_title: "✨ 结果：",
+                btn_copy: "📋 复制",
+                empty_result: "结果将显示在这里...",
+                copied: "✅ 文本已复制！",
+                no_text: "⚠️ 没有要复制的文本",
+                conversion_upper: "🔠 大写转换",
+                conversion_kata: "🈳 片假名转换（罗马字 → カタカナ）"
+            },
+            ja: {
+                title: "🔄 大文字とカタカナ変換器",
+                subtitle: "テキストを入力して変換を選択",
+                label_original: "📝 元のテキスト：",
+                placeholder: "ここにテキストを入力...",
+                btn_convert: "🔠 大文字に変換",
+                btn_katakana: "🈳 カタカナに変換",
+                btn_clear: "🗑️ クリア",
+                result_title: "✨ 結果：",
+                btn_copy: "📋 コピー",
+                empty_result: "結果がここに表示されます...",
+                copied: "✅ テキストをコピーしました！",
+                no_text: "⚠️ コピーするテキストがありません",
+                conversion_upper: "🔠 大文字変換",
+                conversion_kata: "🈳 カタカナ変換（ローマ字 → カタカナ）"
+            }
+        };
+
+        // Función para convertir a mayúsculas
+        function convertToUpper() {
+            const texto = document.getElementById('texto').value;
+            if (texto.trim() === "") {
+                mostrarToast(traducciones[idiomaActual].no_text, '#ff9800');
+                return;
+            }
+            const resultado = TO_UPPERCASE_ENGLISH(texto);
+            document.getElementById('resultado').textContent = resultado;
+            conversionActual = 'upper';
+            mostrarBadge('upper');
+        }
+
+        // Función para convertir a katakana
+        function convertToKatakana() {
+            const texto = document.getElementById('texto').value;
+            if (texto.trim() === "") {
+                mostrarToast(traducciones[idiomaActual].no_text, '#ff9800');
+                return;
+            }
+            const resultado = ROMAJI_TO_KATAKANA(texto);
+            document.getElementById('resultado').textContent = resultado;
+            conversionActual = 'katakana';
+            mostrarBadge('katakana');
+        }
+
+        // Mostrar badge del tipo de conversión
+        function mostrarBadge(tipo) {
+            const badgeDiv = document.getElementById('conversion-type');
+            const badgeSpan = document.getElementById('badge-type');
+            
+            if (tipo === 'upper') {
+                badgeSpan.textContent = traducciones[idiomaActual].conversion_upper;
+                badgeSpan.className = 'conversion-badge badge-upper';
+            } else if (tipo === 'katakana') {
+                badgeSpan.textContent = traducciones[idiomaActual].conversion_kata;
+                badgeSpan.className = 'conversion-badge badge-katakana';
+            }
+            
+            badgeDiv.style.display = 'block';
+        }
+
+        // Convertir en tiempo real (opcional)
+        const textarea = document.getElementById('texto');
+        const resultadoDiv = document.getElementById('resultado');
+
+        function convertirEnTiempoReal() {
+            // No convertir automáticamente para mantener la última conversión
+            // Solo mostramos el texto original si no hay conversión
+            if (!conversionActual && textarea.value === "") {
+                resultadoDiv.textContent = traducciones[idiomaActual].empty_result;
+            }
+        }
+
+        textarea.addEventListener('input', function() {
+            conversionActual = '';
+            document.getElementById('conversion-type').style.display = 'none';
+        });
+
+        function limpiarTexto() {
+            textarea.value = '';
+            resultadoDiv.textContent = traducciones[idiomaActual].empty_result;
+            conversionActual = '';
+            document.getElementById('conversion-type').style.display = 'none';
+            textarea.focus();
+        }
+
+        async function copiarTexto() {
+            const textoACopiar = resultadoDiv.textContent;
+            const emptyResult = traducciones[idiomaActual].empty_result;
+            
+            if (textoACopiar && textoACopiar !== emptyResult) {
+                try {
+                    await navigator.clipboard.writeText(textoACopiar);
+                    mostrarToast(traducciones[idiomaActual].copied, '#28a745');
+                } catch (err) {
+                    const textareaTemp = document.createElement('textarea');
+                    textareaTemp.value = textoACopiar;
+                    document.body.appendChild(textareaTemp);
+                    textareaTemp.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textareaTemp);
+                    mostrarToast(traducciones[idiomaActual].copied, '#28a745');
+                }
+            } else {
+                mostrarToast(traducciones[idiomaActual].no_text, '#ff9800');
+            }
+        }
+
+        function mostrarToast(mensaje, color = '#333') {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.style.backgroundColor = color;
+            toast.className = "toast show";
+            
+            setTimeout(() => {
+                toast.className = "toast";
+            }, 2000);
+        }
+
+        // Funciones de idioma
+        async function cambiarIdioma(idioma) {
+            idiomaActual = idioma;
+            
+            try {
+                await fetch('/cambiar-idioma', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ idioma: idioma })
+                });
+            } catch (error) {
+                console.error('Error al guardar idioma:', error);
+            }
+            
+            actualizarTextos(idioma);
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === idioma) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function actualizarTextos(idioma) {
+            const texts = traducciones[idioma];
+            if (!texts) return;
+            
+            document.getElementById('title').textContent = texts.title;
+            document.getElementById('subtitle').textContent = texts.subtitle;
+            document.getElementById('label-original').textContent = texts.label_original;
+            document.getElementById('btn-convert').innerHTML = texts.btn_convert;
+            document.getElementById('btn-katakana').innerHTML = texts.btn_katakana;
+            document.getElementById('btn-clear').innerHTML = texts.btn_clear;
+            document.getElementById('result-title').textContent = texts.result_title;
+            document.getElementById('btn-copy').innerHTML = texts.btn_copy;
+            
+            const textarea = document.getElementById('texto');
+            textarea.placeholder = texts.placeholder;
+            
+            const resultadoDiv = document.getElementById('resultado');
+            if (resultadoDiv.textContent === "" || 
+                resultadoDiv.textContent === "El resultado aparecerá aquí..." || 
+                resultadoDiv.textContent === "The result will appear here..." ||
+                resultadoDiv.textContent === "结果将显示在这里..." ||
+                resultadoDiv.textContent === "結果がここに表示されます...") {
+                resultadoDiv.textContent = texts.empty_result;
+            }
+            
+            // Actualizar badge si existe
+            if (conversionActual === 'upper') {
+                document.getElementById('badge-type').textContent = texts.conversion_upper;
+            } else if (conversionActual === 'katakana') {
+                document.getElementById('badge-type').textContent = texts.conversion_kata;
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarTextos('es');
+        });
+    </script>
 </body>
 </html>
