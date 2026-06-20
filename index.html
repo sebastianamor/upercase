@@ -522,6 +522,40 @@
             </div>
             <div id="phoneErrorMsg" class="error-msg"></div>
         </div>
+
+        <!-- SEPARADOR -->
+        <div class="separator">
+            <div class="separator-text">✦ 🇯🇵 　JAPANESE NAME　→　COUNTRY CODE　✦</div>
+        </div>
+
+        <!-- SECCIÓN 3: PAÍS EN JAPONÉS → CÓDIGO -->
+        <div id="name-section">
+            <div class="input-group">
+                <label for="nameInput" id="label-name">🈸 Nombre del país en japonés:</label>
+                <input type="text" id="nameInput" placeholder="Ej: チリ">
+            </div>
+
+            <button type="button" class="btn-detect" id="detectCodeBtn">
+                🔍 Obtener código de país
+            </button>
+
+            <div id="nameResultArea" style="display: none;">
+                <div class="result-block">
+                    <div class="result-header">
+                        <h3>
+                            <span>🔢</span>
+                            <span id="name-code-title">国番号 (Código)</span>
+                            <span class="badge badge-code">Listo para copiar</span>
+                        </h3>
+                        <button class="btn-copy" onclick="copiarTextoCodigo()">
+                            📋 Copiar código
+                        </button>
+                    </div>
+                    <div class="result-text" id="nameCodeResult"></div>
+                </div>
+            </div>
+            <div id="nameErrorMsg" class="error-msg"></div>
+        </div>
     </div>
     
     <footer class="footer">
@@ -833,6 +867,37 @@
             return { error: "Código de país no encontrado o número inválido." };
         }
 
+        // Lista plana: cada nombre individual de país (separando los "/") junto a su código
+        const flatCountryNames = [];
+        for (let country of countryCodes) {
+            const names = country.name.split('/');
+            for (let n of names) {
+                flatCountryNames.push({ name: n, code: country.code });
+            }
+        }
+        // Coincidencias exactas más largas primero (para evitar falsos positivos parciales)
+        flatCountryNames.sort((a, b) => b.name.length - a.name.length);
+
+        function detectCodeByJapaneseName(input) {
+            const query = input.trim();
+            if (!query) {
+                return { error: "empty" };
+            }
+            // 1) Coincidencia exacta
+            for (let entry of flatCountryNames) {
+                if (entry.name === query) {
+                    return { name: entry.name, code: entry.code, formatted: `${entry.code}-` };
+                }
+            }
+            // 2) Coincidencia parcial (el nombre del país contiene el texto escrito, o viceversa)
+            for (let entry of flatCountryNames) {
+                if (entry.name.includes(query) || query.includes(entry.name)) {
+                    return { name: entry.name, code: entry.code, formatted: `${entry.code}-` };
+                }
+            }
+            return { error: "not_found" };
+        }
+
         // ==================== VARIABLES GLOBALES ====================
         let idiomaActual = 'es';
         
@@ -855,7 +920,14 @@
                 phone_code_title: "番号 (Número)",
                 phone_waiting: "Ingresa un número y presiona detectar",
                 copied_country: "✅ ¡País copiado!",
-                copied_number: "✅ ¡Número copiado!"
+                copied_number: "✅ ¡Número copiado!",
+                label_name: "🈸 Nombre del país en japonés:",
+                name_placeholder: "Ej: チリ",
+                btn_detect_code: "🔍 Obtener código de país",
+                name_code_title: "国番号 (Código)",
+                name_empty: "Ingresa el nombre del país en japonés",
+                name_not_found: "No se encontró ese país. Verifica el nombre en japonés.",
+                copied_code: "✅ ¡Código copiado!"
             },
             en: {
                 title: "🔄 Romaji Converter",
@@ -875,7 +947,14 @@
                 phone_code_title: "Code - Number",
                 phone_waiting: "Enter a number and press detect",
                 copied_country: "✅ Country copied!",
-                copied_number: "✅ Number copied!"
+                copied_number: "✅ Number copied!",
+                label_name: "🈸 Country name in Japanese:",
+                name_placeholder: "E.g: チリ",
+                btn_detect_code: "🔍 Get country code",
+                name_code_title: "Country code",
+                name_empty: "Enter the country name in Japanese",
+                name_not_found: "Country not found. Check the Japanese name.",
+                copied_code: "✅ Code copied!"
             },
             zh: {
                 title: "🔄 罗马字转换器",
@@ -895,7 +974,14 @@
                 phone_code_title: "代码 - 号码",
                 phone_waiting: "输入号码并按检测",
                 copied_country: "✅ 国家已复制！",
-                copied_number: "✅ 号码已复制！"
+                copied_number: "✅ 号码已复制！",
+                label_name: "🈸 日语国家名称：",
+                name_placeholder: "例如：チリ",
+                btn_detect_code: "🔍 获取国家代码",
+                name_code_title: "国家代码",
+                name_empty: "请输入日语国家名称",
+                name_not_found: "未找到该国家，请检查日语名称。",
+                copied_code: "✅ 代码已复制！"
             },
             ja: {
                 title: "🔄 ローマ字変換器",
@@ -915,7 +1001,14 @@
                 phone_code_title: "コード - 番号",
                 phone_waiting: "番号を入力して検出を押してください",
                 copied_country: "✅ 国をコピーしました！",
-                copied_number: "✅ 番号をコピーしました！"
+                copied_number: "✅ 番号をコピーしました！",
+                label_name: "🈸 国名（日本語）：",
+                name_placeholder: "例：チリ",
+                btn_detect_code: "🔍 国番号を取得",
+                name_code_title: "国番号",
+                name_empty: "国名を日本語で入力してください",
+                name_not_found: "その国は見つかりませんでした。日本語名を確認してください。",
+                copied_code: "✅ コードをコピーしました！"
             }
         };
 
@@ -936,6 +1029,15 @@
         
         let currentCountryName = "";
         let currentCodeNumber = "";
+
+        // Elementos del nombre japonés → código
+        const nameInput = document.getElementById('nameInput');
+        const detectCodeBtn = document.getElementById('detectCodeBtn');
+        const nameResultArea = document.getElementById('nameResultArea');
+        const nameErrorMsg = document.getElementById('nameErrorMsg');
+        const nameCodeResult = document.getElementById('nameCodeResult');
+
+        let currentCodeFromName = "";
 
         function convertirEnTiempoReal() {
             const texto = textarea.value;
@@ -1043,6 +1145,45 @@
             }
         }
 
+        function detectarCodigoPorNombre() {
+            const nombre = nameInput.value.trim();
+            const texts = traducciones[idiomaActual];
+            if (nombre === "") {
+                nameErrorMsg.textContent = "⚠️ " + texts.name_empty;
+                nameResultArea.style.display = 'none';
+                return;
+            }
+            const result = detectCodeByJapaneseName(nombre);
+            if (result.error) {
+                nameErrorMsg.textContent = "⚠️ " + texts.name_not_found;
+                nameResultArea.style.display = 'none';
+                return;
+            }
+            nameErrorMsg.textContent = "";
+            currentCodeFromName = result.formatted;
+            nameCodeResult.textContent = result.formatted;
+            nameResultArea.style.display = 'block';
+        }
+
+        async function copiarTextoCodigo() {
+            if (!currentCodeFromName) {
+                mostrarToast(traducciones[idiomaActual].no_text, '#ff9800');
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(currentCodeFromName);
+                mostrarToast(traducciones[idiomaActual].copied_code, '#28a745');
+            } catch (err) {
+                const temp = document.createElement('textarea');
+                temp.value = currentCodeFromName;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                mostrarToast(traducciones[idiomaActual].copied_code, '#28a745');
+            }
+        }
+
         function mostrarToast(mensaje, color = '#333') {
             const toast = document.getElementById('toast');
             toast.textContent = mensaje;
@@ -1089,6 +1230,11 @@
             document.getElementById('phone-country-title').textContent = texts.phone_country_title;
             document.getElementById('phone-code-title').textContent = texts.phone_code_title;
             
+            document.getElementById('label-name').textContent = texts.label_name;
+            nameInput.placeholder = texts.name_placeholder;
+            detectCodeBtn.innerHTML = texts.btn_detect_code;
+            document.getElementById('name-code-title').textContent = texts.name_code_title;
+            
             if (textarea.value.trim() === "") {
                 katakanaResult.textContent = texts.waiting;
                 uppercaseResult.textContent = texts.waiting;
@@ -1105,10 +1251,16 @@
             if (e.key === 'Enter') detectarPais();
         });
 
+        detectCodeBtn.addEventListener('click', detectarCodigoPorNombre);
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') detectarCodigoPorNombre();
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             actualizarTextos('es');
             textarea.focus();
         });
+        
     </script>
 </body>
 </html>
