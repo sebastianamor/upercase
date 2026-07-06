@@ -399,20 +399,55 @@
                 font-size: 14px;
             }
         }
+
+        /* ===== PDF a PNG ===== */
+        #pdf-drop-zone {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+            background: #f8f9ff;
+        }
+        #pdf-drop-zone:hover { background: #eef0ff; }
+        #pdf-drop-zone.drag-over { background: #eef0ff; }
+        .pdf-icon { font-size: 3em; }
+        .pdf-drop-label { color: #667eea; font-weight: 600; margin-top: 8px; }
+        .pdf-drop-sub { color: #999; font-size: 13px; margin-top: 5px; }
+
+        .pdf-progress-wrap { display: none; margin-bottom: 20px; }
+        .pdf-progress-track { background: #f0f0f0; border-radius: 10px; overflow: hidden; height: 12px; }
+        .pdf-progress-bar { height: 100%; width: 0%; background: linear-gradient(135deg, #667eea, #764ba2); transition: width 0.3s; }
+        .pdf-progress-label { text-align: center; font-size: 13px; color: #666; margin-top: 5px; }
+
+        .pdf-result-area { display: none; }
+        .pdf-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .pdf-page-count { font-weight: 600; color: #555; }
+        .pdf-dl-all-btn { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .pdf-pages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+
+        .pdf-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+        .pdf-card img { width: 100%; display: block; border-bottom: 1px solid #eee; }
+        .pdf-card-footer { padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .pdf-card-footer span { font-size: 12px; color: #888; }
+        .pdf-card-footer button { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer; font-weight: 600; }
     </style>
+    <!-- PDF.js cargado estáticamente para GitHub Pages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
     <div class="language-selector">
-        <button class="lang-btn" onclick="cambiarIdioma('es')" data-lang="es">
+        <button class="lang-btn" onclick="cambiarIdioma(&quot;es&quot;)" data-lang="es">
             🇪🇸 <span class="lang-text">Español</span>
         </button>
-        <button class="lang-btn" onclick="cambiarIdioma('en')" data-lang="en">
+        <button class="lang-btn" onclick="cambiarIdioma(&quot;en&quot;)" data-lang="en">
             🇬🇧 <span class="lang-text">English</span>
         </button>
-        <button class="lang-btn" onclick="cambiarIdioma('zh')" data-lang="zh">
+        <button class="lang-btn" onclick="cambiarIdioma(&quot;zh&quot;)" data-lang="zh">
             🇨🇳 <span class="lang-text">中文</span>
         </button>
-        <button class="lang-btn" onclick="cambiarIdioma('ja')" data-lang="ja">
+        <button class="lang-btn" onclick="cambiarIdioma(&quot;ja&quot;)" data-lang="ja">
             🇯🇵 <span class="lang-text">日本語</span>
         </button>
     </div>
@@ -443,7 +478,7 @@
                         <span id="katakana-title">Katakana (カタカナ)</span>
                         <span class="badge badge-katakana">Romaji → カタカナ</span>
                     </h3>
-                    <button class="btn-copy" onclick="copiarTexto('katakana')">
+                    <button class="btn-copy" onclick="copiarTexto(&quot;katakana&quot;)">
                         📋 Copiar
                     </button>
                 </div>
@@ -460,7 +495,7 @@
                         <span id="uppercase-title">UPPERCASE</span>
                         <span class="badge badge-upper">Romaji → MAYÚSCULAS</span>
                     </h3>
-                    <button class="btn-copy" onclick="copiarTexto('uppercase')">
+                    <button class="btn-copy" onclick="copiarTexto(&quot;uppercase&quot;)">
                         📋 Copiar
                     </button>
                 </div>
@@ -497,7 +532,7 @@
                                 <span id="phone-country-title">国名 (País)</span>
                                 <span class="badge badge-country">Solo nombre del país</span>
                             </h3>
-                            <button class="btn-copy" onclick="copiarTextoPhone('country')">
+                            <button class="btn-copy" onclick="copiarTextoPhone(&quot;country&quot;)">
                                 📋 Copiar país
                             </button>
                         </div>
@@ -512,7 +547,7 @@
                                 <span id="phone-code-title">番号 (Número)</span>
                                 <span class="badge badge-code">Código - Número</span>
                             </h3>
-                            <button class="btn-copy" onclick="copiarTextoPhone('code')">
+                            <button class="btn-copy" onclick="copiarTextoPhone(&quot;code&quot;)">
                                 📋 Copiar número
                             </button>
                         </div>
@@ -562,48 +597,33 @@
             <div class="separator-text">✦ 📄 　PDF　→　PNG　CONVERTER　✦</div>
         </div>
 
-        <!-- SECCIÓN 4: PDF → PNG -->
+        <!-- SECCIÓN 4: PDF a PNG -->
         <div id="pdf-section">
             <div class="input-group">
                 <label id="label-pdf">📄 Selecciona un archivo PDF:</label>
-                <div id="pdf-drop-zone" style="
-                    border: 2px dashed #667eea;
-                    border-radius: 12px;
-                    padding: 30px;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: background 0.3s;
-                    background: #f8f9ff;
-                " onclick="document.getElementById('pdfFileInput').click()"
-                   ondragover="event.preventDefault(); this.style.background='#eef0ff'"
-                   ondragleave="this.style.background='#f8f9ff'"
-                   ondrop="handlePdfDrop(event)">
-                    <div style="font-size:3em;">📄</div>
-                    <div id="drop-label" style="color:#667eea; font-weight:600; margin-top:8px;">Haz clic o arrastra tu PDF aquí</div>
-                    <div style="color:#999; font-size:13px; margin-top:5px;">Soporta PDFs de múltiples páginas</div>
+                <div id="pdf-drop-zone" onclick="pdfZoneClick()" ondragover="pdfDragOver(event)" ondragleave="pdfDragLeave()" ondrop="handlePdfDrop(event)">
+                    <div class="pdf-icon">📄</div>
+                    <div id="drop-label" class="pdf-drop-label">Haz clic o arrastra tu PDF aquí</div>
+                    <div class="pdf-drop-sub">Soporta PDFs de múltiples páginas</div>
                 </div>
                 <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none">
             </div>
 
-            <div id="pdfProgressArea" style="display:none; margin-bottom:20px;">
-                <div style="background:#f0f0f0; border-radius:10px; overflow:hidden; height:12px;">
-                    <div id="pdfProgressBar" style="height:100%; width:0%; background:linear-gradient(135deg,#667eea,#764ba2); transition:width 0.3s;"></div>
+            <div id="pdfProgressArea" class="pdf-progress-wrap">
+                <div class="pdf-progress-track">
+                    <div id="pdfProgressBar" class="pdf-progress-bar"></div>
                 </div>
-                <div id="pdfProgressLabel" style="text-align:center; font-size:13px; color:#666; margin-top:5px;"></div>
+                <div id="pdfProgressLabel" class="pdf-progress-label"></div>
             </div>
 
-            <div id="pdfResultArea" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                    <span id="pdfPageCount" style="font-weight:600; color:#555;"></span>
-                    <button class="btn-copy" id="btnDownloadAll" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+            <div id="pdfResultArea" class="pdf-result-area">
+                <div class="pdf-result-header">
+                    <span id="pdfPageCount" class="pdf-page-count"></span>
+                    <button class="btn-copy pdf-dl-all-btn" id="btnDownloadAll">
                         ⬇️ Descargar todas las páginas
                     </button>
                 </div>
-                <div id="pdfPagesGrid" style="
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                    gap: 16px;
-                "></div>
+                <div id="pdfPagesGrid" class="pdf-pages-grid"></div>
             </div>
             <div id="pdfErrorMsg" class="error-msg"></div>
         </div>
@@ -1313,16 +1333,20 @@
         });
 
         // ==================== CONVERSOR PDF → PNG ====================
-        // Carga PDF.js dinámicamente
-        (function loadPdfJs() {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-            script.onload = () => {
+        // PDF.js ya está cargado desde el <head>
+        // Configurar el worker: primero intenta CDN, si falla usa fake worker
+        function initPdfJs() {
+            if (typeof pdfjsLib === 'undefined') return; // aún no cargó
+            try {
                 pdfjsLib.GlobalWorkerOptions.workerSrc =
                     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            };
-            document.head.appendChild(script);
-        })();
+            } catch(e) {
+                // fallback: desactiva el worker (modo single-thread, más lento pero funciona)
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+            }
+        }
+        // Llamar al init apenas el DOM esté listo (el script del head ya cargó síncronamente)
+        document.addEventListener('DOMContentLoaded', initPdfJs);
 
         const pdfFileInput  = document.getElementById('pdfFileInput');
         const pdfProgressArea = document.getElementById('pdfProgressArea');
@@ -1334,13 +1358,19 @@
         const pdfErrorMsg     = document.getElementById('pdfErrorMsg');
         const btnDownloadAll  = document.getElementById('btnDownloadAll');
         const dropLabel       = document.getElementById('drop-label');
+        const pdfDropZone     = document.getElementById('pdf-drop-zone');
 
         let generatedPngs = [];   // { name, dataUrl }
 
+        // Handlers del drop zone (sin comillas anidadas en atributos HTML)
+        function pdfZoneClick() { pdfFileInput.click(); }
+        function pdfDragOver(e) { e.preventDefault(); pdfDropZone.classList.add('drag-over'); }
+        function pdfDragLeave()  { pdfDropZone.classList.remove('drag-over'); }
+
         function handlePdfDrop(e) {
             e.preventDefault();
-            document.getElementById('pdf-drop-zone').style.background = '#f8f9ff';
-            const file = e.dataTransfer.files[0];
+            pdfDropZone.classList.remove('drag-over');
+            var file = e.dataTransfer.files[0];
             if (file && file.type === 'application/pdf') {
                 processPdf(file);
             } else {
@@ -1348,8 +1378,8 @@
             }
         }
 
-        pdfFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
+        pdfFileInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
             if (file) processPdf(file);
         });
 
@@ -1363,45 +1393,63 @@
             generatedPngs = [];
             dropLabel.textContent = '📂 ' + file.name;
 
+            if (typeof pdfjsLib === 'undefined') {
+                pdfProgressArea.style.display = 'none';
+                pdfErrorMsg.textContent = '❌ PDF.js no cargó. Recarga la página e intenta de nuevo.';
+                return;
+            }
+            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+
             try {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                const total = pdf.numPages;
-                pdfPageCount.textContent = `📑 ${total} página${total > 1 ? 's' : ''} encontrada${total > 1 ? 's' : ''}`;
+                var arrayBuffer = await file.arrayBuffer();
+                var pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+                var total = pdf.numPages;
+                pdfPageCount.textContent = '📑 ' + total + ' página' + (total > 1 ? 's' : '') + ' encontrada' + (total > 1 ? 's' : '');
 
-                for (let i = 1; i <= total; i++) {
-                    pdfProgressLabel.textContent = `Convirtiendo página ${i} de ${total}…`;
-                    pdfProgressBar.style.width = `${Math.round((i / total) * 100)}%`;
+                for (var i = 1; i <= total; i++) {
+                    pdfProgressLabel.textContent = 'Convirtiendo página ' + i + ' de ' + total + '…';
+                    pdfProgressBar.style.width = Math.round((i / total) * 100) + '%';
 
-                    const page = await pdf.getPage(i);
-                    const scale = 2.0;   // alta resolución
-                    const viewport = page.getViewport({ scale });
-
-                    const canvas = document.createElement('canvas');
+                    var page = await pdf.getPage(i);
+                    var viewport = page.getViewport({ scale: 2.0 });
+                    var canvas = document.createElement('canvas');
                     canvas.width  = viewport.width;
                     canvas.height = viewport.height;
-                    const ctx = canvas.getContext('2d');
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
 
-                    await page.render({ canvasContext: ctx, viewport }).promise;
+                    var dataUrl = canvas.toDataURL('image/png');
+                    var pgName = file.name.replace(/\.pdf$/i, '') + '_page' + String(i).padStart(3, '0') + '.png';
+                    generatedPngs.push({ name: pgName, dataUrl: dataUrl });
 
-                    const dataUrl = canvas.toDataURL('image/png');
-                    const name = `${file.name.replace(/\.pdf$/i, '')}_page${String(i).padStart(3,'0')}.png`;
-                    generatedPngs.push({ name, dataUrl });
+                    // Tarjeta usando createElement (sin innerHTML con comillas anidadas)
+                    var card = document.createElement('div');
+                    card.className = 'pdf-card';
 
-                    // Tarjeta en el grid
-                    const card = document.createElement('div');
-                    card.style.cssText = 'background:#fff; border:1px solid #e0e0e0; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.07);';
-                    card.innerHTML = `
-                        <img src="${dataUrl}" style="width:100%; display:block; border-bottom:1px solid #eee;" loading="lazy">
-                        <div style="padding:10px; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:12px; color:#888;">Pág. ${i}</span>
-                            <button onclick="descargarPng(${i-1})" style="
-                                background:linear-gradient(135deg,#667eea,#764ba2);
-                                color:white; border:none; border-radius:6px;
-                                padding:5px 12px; font-size:12px; cursor:pointer; font-weight:600;">
-                                ⬇️ PNG
-                            </button>
-                        </div>`;
+                    var img = document.createElement('img');
+                    img.src = dataUrl;
+                    img.loading = 'lazy';
+                    img.alt = 'Página ' + i;
+
+                    var footer = document.createElement('div');
+                    footer.className = 'pdf-card-footer';
+
+                    var pageLabel = document.createElement('span');
+                    pageLabel.textContent = 'Pág. ' + i;
+
+                    var dlBtn = document.createElement('button');
+                    dlBtn.textContent = '⬇️ PNG';
+                    dlBtn.setAttribute('data-index', i - 1);
+                    dlBtn.addEventListener('click', function() {
+                        descargarPng(parseInt(this.getAttribute('data-index')));
+                    });
+
+                    footer.appendChild(pageLabel);
+                    footer.appendChild(dlBtn);
+                    card.appendChild(img);
+                    card.appendChild(footer);
                     pdfPagesGrid.appendChild(card);
                 }
 
@@ -1416,10 +1464,10 @@
         }
 
         function descargarPng(index) {
-            const { name, dataUrl } = generatedPngs[index];
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = name;
+            var item = generatedPngs[index];
+            var a = document.createElement('a');
+            a.href = item.dataUrl;
+            a.download = item.name;
             a.click();
         }
 
