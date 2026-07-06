@@ -556,6 +556,57 @@
             </div>
             <div id="nameErrorMsg" class="error-msg"></div>
         </div>
+
+        <!-- SEPARADOR -->
+        <div class="separator">
+            <div class="separator-text">✦ 📄 　PDF　→　PNG　CONVERTER　✦</div>
+        </div>
+
+        <!-- SECCIÓN 4: PDF → PNG -->
+        <div id="pdf-section">
+            <div class="input-group">
+                <label id="label-pdf">📄 Selecciona un archivo PDF:</label>
+                <div id="pdf-drop-zone" style="
+                    border: 2px dashed #667eea;
+                    border-radius: 12px;
+                    padding: 30px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                    background: #f8f9ff;
+                " onclick="document.getElementById('pdfFileInput').click()"
+                   ondragover="event.preventDefault(); this.style.background='#eef0ff'"
+                   ondragleave="this.style.background='#f8f9ff'"
+                   ondrop="handlePdfDrop(event)">
+                    <div style="font-size:3em;">📄</div>
+                    <div id="drop-label" style="color:#667eea; font-weight:600; margin-top:8px;">Haz clic o arrastra tu PDF aquí</div>
+                    <div style="color:#999; font-size:13px; margin-top:5px;">Soporta PDFs de múltiples páginas</div>
+                </div>
+                <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none">
+            </div>
+
+            <div id="pdfProgressArea" style="display:none; margin-bottom:20px;">
+                <div style="background:#f0f0f0; border-radius:10px; overflow:hidden; height:12px;">
+                    <div id="pdfProgressBar" style="height:100%; width:0%; background:linear-gradient(135deg,#667eea,#764ba2); transition:width 0.3s;"></div>
+                </div>
+                <div id="pdfProgressLabel" style="text-align:center; font-size:13px; color:#666; margin-top:5px;"></div>
+            </div>
+
+            <div id="pdfResultArea" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                    <span id="pdfPageCount" style="font-weight:600; color:#555;"></span>
+                    <button class="btn-copy" id="btnDownloadAll" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+                        ⬇️ Descargar todas las páginas
+                    </button>
+                </div>
+                <div id="pdfPagesGrid" style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 16px;
+                "></div>
+            </div>
+            <div id="pdfErrorMsg" class="error-msg"></div>
+        </div>
     </div>
     
     <footer class="footer">
@@ -1260,7 +1311,137 @@
             actualizarTextos('es');
             textarea.focus();
         });
-        
+
+        // ==================== CONVERSOR PDF → PNG ====================
+        // Carga PDF.js dinámicamente
+        (function loadPdfJs() {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = () => {
+                pdfjsLib.GlobalWorkerOptions.workerSrc =
+                    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            };
+            document.head.appendChild(script);
+        })();
+
+        const pdfFileInput  = document.getElementById('pdfFileInput');
+        const pdfProgressArea = document.getElementById('pdfProgressArea');
+        const pdfProgressBar  = document.getElementById('pdfProgressBar');
+        const pdfProgressLabel = document.getElementById('pdfProgressLabel');
+        const pdfResultArea   = document.getElementById('pdfResultArea');
+        const pdfPagesGrid    = document.getElementById('pdfPagesGrid');
+        const pdfPageCount    = document.getElementById('pdfPageCount');
+        const pdfErrorMsg     = document.getElementById('pdfErrorMsg');
+        const btnDownloadAll  = document.getElementById('btnDownloadAll');
+        const dropLabel       = document.getElementById('drop-label');
+
+        let generatedPngs = [];   // { name, dataUrl }
+
+        function handlePdfDrop(e) {
+            e.preventDefault();
+            document.getElementById('pdf-drop-zone').style.background = '#f8f9ff';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                processPdf(file);
+            } else {
+                pdfErrorMsg.textContent = '⚠️ Por favor arrastra un archivo PDF válido.';
+            }
+        }
+
+        pdfFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) processPdf(file);
+        });
+
+        async function processPdf(file) {
+            pdfErrorMsg.textContent = '';
+            pdfResultArea.style.display = 'none';
+            pdfProgressArea.style.display = 'block';
+            pdfProgressBar.style.width = '0%';
+            pdfProgressLabel.textContent = 'Cargando PDF…';
+            pdfPagesGrid.innerHTML = '';
+            generatedPngs = [];
+            dropLabel.textContent = '📂 ' + file.name;
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const total = pdf.numPages;
+                pdfPageCount.textContent = `📑 ${total} página${total > 1 ? 's' : ''} encontrada${total > 1 ? 's' : ''}`;
+
+                for (let i = 1; i <= total; i++) {
+                    pdfProgressLabel.textContent = `Convirtiendo página ${i} de ${total}…`;
+                    pdfProgressBar.style.width = `${Math.round((i / total) * 100)}%`;
+
+                    const page = await pdf.getPage(i);
+                    const scale = 2.0;   // alta resolución
+                    const viewport = page.getViewport({ scale });
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width  = viewport.width;
+                    canvas.height = viewport.height;
+                    const ctx = canvas.getContext('2d');
+
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const name = `${file.name.replace(/\.pdf$/i, '')}_page${String(i).padStart(3,'0')}.png`;
+                    generatedPngs.push({ name, dataUrl });
+
+                    // Tarjeta en el grid
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background:#fff; border:1px solid #e0e0e0; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.07);';
+                    card.innerHTML = `
+                        <img src="${dataUrl}" style="width:100%; display:block; border-bottom:1px solid #eee;" loading="lazy">
+                        <div style="padding:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px; color:#888;">Pág. ${i}</span>
+                            <button onclick="descargarPng(${i-1})" style="
+                                background:linear-gradient(135deg,#667eea,#764ba2);
+                                color:white; border:none; border-radius:6px;
+                                padding:5px 12px; font-size:12px; cursor:pointer; font-weight:600;">
+                                ⬇️ PNG
+                            </button>
+                        </div>`;
+                    pdfPagesGrid.appendChild(card);
+                }
+
+                pdfProgressArea.style.display = 'none';
+                pdfResultArea.style.display = 'block';
+
+            } catch (err) {
+                pdfProgressArea.style.display = 'none';
+                pdfErrorMsg.textContent = '❌ Error al procesar el PDF: ' + err.message;
+                console.error(err);
+            }
+        }
+
+        function descargarPng(index) {
+            const { name, dataUrl } = generatedPngs[index];
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = name;
+            a.click();
+        }
+
+        btnDownloadAll.addEventListener('click', async () => {
+            if (generatedPngs.length === 0) return;
+            // Si es una sola página, descarga directa
+            if (generatedPngs.length === 1) {
+                descargarPng(0);
+                return;
+            }
+            // Varias páginas: descarga en secuencia con pequeña pausa
+            btnDownloadAll.disabled = true;
+            btnDownloadAll.textContent = '⏳ Descargando…';
+            for (let i = 0; i < generatedPngs.length; i++) {
+                descargarPng(i);
+                await new Promise(r => setTimeout(r, 300));
+            }
+            btnDownloadAll.disabled = false;
+            btnDownloadAll.innerHTML = '⬇️ Descargar todas las páginas';
+            mostrarToast(`✅ ${generatedPngs.length} imágenes descargadas`, '#28a745');
+        });
     </script>
 </body>
 </html>
+
